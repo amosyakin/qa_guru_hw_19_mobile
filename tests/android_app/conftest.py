@@ -5,6 +5,8 @@ import os
 from dotenv import load_dotenv
 from appium import webdriver
 
+from utils.attach import attach_screen, attach_video
+
 load_dotenv()
 
 
@@ -39,5 +41,9 @@ def mobile_management():
     browser.config.timeout = 10.0
 
     yield
+    session_id = browser.driver.session_id
+
+    attach_screen()
+    attach_video(session_id)
 
     browser.quit()

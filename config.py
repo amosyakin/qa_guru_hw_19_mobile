@@ -8,7 +8,7 @@ from qu_guru_hw_19_mobile import utils
 
 
 context = os.getenv('context', 'bstack')
-load_dotenv(Path(f'.env_{context}'))
+load_dotenv(Path(f'.env.{context}'))
 
 remote_url = os.getenv('remote_url')
 deviceName = os.getenv('deviceName')

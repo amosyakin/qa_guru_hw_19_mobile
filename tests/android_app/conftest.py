@@ -1,49 +1,33 @@
+import allure
+import allure_commons
 import pytest
-from appium.options.android import UiAutomator2Options
-from selene import browser
-import os
-from dotenv import load_dotenv
+from selene import browser, support
 from appium import webdriver
 
-from utils.attach import attach_screen, attach_video
-
-load_dotenv()
+import config
+from qu_guru_hw_19_mobile.utils.attach import attach_screen, attach_video
 
 
 @pytest.fixture(scope='function', autouse=True)
 def mobile_management():
-    options = UiAutomator2Options().load_capabilities({
-        # Specify device and os_version for testing
-        "platformName": "android",
-        "platformVersion": "13.0",
-        "deviceName": "Google Pixel 7",
+    with allure.step('init app session'):
+        browser.config.driver = webdriver.Remote(
+            config.remote_url,
+            options=config.to_driver_options()
+        )
+        browser.config.timeout = 10.0
 
-        # Set URL of the application under test
-        "app": "bs://sample.app",
-
-        # Set other BrowserStack capabilities
-        'bstack:options': {
-            "projectName": "First Python project",
-            "buildName": "browserstack-build-1",
-            "sessionName": "BStack first_test",
-
-            # Set your access credentials
-            "userName": os.getenv('USER_NAME'),
-            "accessKey": os.getenv('ACCESS_KEY')
-        }
-    })
-
-    browser.config.driver = webdriver.Remote(
-        command_executor=os.getenv('BROWSERSTACK_URL'),
-        options=options
-    )
-
-    browser.config.timeout = 10.0
+        # browser.config._wait_decorator = support._logging.wait_with(
+        #     context=allure_commons._allure.StepContext)
 
     yield
-    session_id = browser.driver.session_id
 
     attach_screen()
-    attach_video(session_id)
 
-    browser.quit()
+    session_id = browser.driver.session_id
+
+    with allure.step('tear down app session with id: ' + session_id):
+        browser.quit()
+
+    if config.context == 'bstack':
+        attach_video(session_id)
